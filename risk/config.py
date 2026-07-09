@@ -1,0 +1,9 @@
+MAX_POSITION_PERCENT = 0.10      # 10%
+
+MAX_ACCOUNT_RISK = 0.02          # 2%
+
+MAX_OPTIONS_EXPOSURE = 0.20      # 20%
+
+MAX_DAILY_LOSS = 0.03            # 3%
+
+MIN_CASH_PERCENT = 0.15          # 15%
