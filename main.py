@@ -21,7 +21,9 @@ from reports.decision_report import generate_decision_report
 
 from reports.trade_report import generate_trade_report
 
-
+from options.options_chain import OptionsChain
+from options.options_analyzer import OptionsAnalyzer
+from reports.options_report import generate_options_report
 
 def main():
 
@@ -97,7 +99,40 @@ def main():
         signals
     )
 
+    # =========================
+    # Options Engine
+    # =========================
 
+
+    options_chain = OptionsChain()
+
+
+    chain = options_chain.get_chain(
+
+        market["symbol"],
+
+        market["price"]
+
+    )
+
+
+    options_analyzer = OptionsAnalyzer()
+
+
+    options = options_analyzer.analyze(
+
+        chain,
+
+        market,
+
+        signals
+
+    )
+
+
+    generate_options_report(
+        options
+    )
 
     # =========================
     # Risk Agent

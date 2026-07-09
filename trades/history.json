@@ -1,0 +1,14 @@
+[
+    {
+        "status": "FILLED",
+        "order": {
+            "symbol": "AAPL",
+            "type": "CALL",
+            "strike": 320,
+            "expiration": "30D",
+            "contracts": 2,
+            "entry_cost": 400.0
+        },
+        "remaining_cash": 4600.0
+    }
+]
