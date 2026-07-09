@@ -3,14 +3,27 @@ def generate_trade_report(result):
 
     print("\n")
     print("="*50)
-    print("PAPER TRADE EXECUTION")
+    print("TRADE DECISION")
     print("="*50)
 
 
-    for key,value in result.items():
+    print(
+        "Action:",
+        result["action"]
+    )
+
+
+    print(
+        "Reason:",
+        result["reason"]
+    )
+
+
+    if result["trade"]:
 
         print(
-            f"{key}: {value}"
+            "Trade:",
+            result["trade"]
         )
 
 
