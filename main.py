@@ -36,6 +36,10 @@ from reports.trade_report import generate_trade_report
 from memory.trade_memory import TradeMemory
 from reports.memory_report import generate_memory_report
 
+from learning.performance_tracker import PerformanceTracker
+from reports.performance_report import generate_performance_report
+from utils.trade_simulator import TradeSimulator
+
 
 def main():
 
@@ -274,6 +278,16 @@ history = memory.get_history()
 generate_memory_report(
     history
 )
+
+tracker = PerformanceTracker()
+
+simulator = TradeSimulator()
+
+result = simulator.evaluate()
+
+tracker.add_result(result)
+
+generate_performance_report(tracker)
 
 
 print("\nTrading AI Cycle Completed Successfully\n")
