@@ -1,21 +1,106 @@
 from broker.mock_broker import MockBroker
+
 from agents.portfolio_agent import PortfolioAgent
 from reports.portfolio_report import generate_report
 
+from agents.market_agent import MarketAgent
+from reports.market_report import generate_market_report
 
+from agents.strategy_agent import StrategyAgent
+from reports.strategy_report import generate_strategy_report
+
+from agents.ai_trading_agent import AITradingAgent
+from reports.ai_report import generate_ai_report
 
 def main():
 
+
+    # =========================
+    # Portfolio Agent
+    # =========================
+
     broker = MockBroker()
 
-    agent = PortfolioAgent(
+    portfolio_agent = PortfolioAgent(
         broker
     )
 
-    result = agent.analyze()
+    portfolio = (
+        portfolio_agent
+        .analyze()
+    )
 
-    generate_report(result)
+    generate_report(
+        portfolio
+    )
 
+
+
+    # =========================
+    # Market Agent
+    # =========================
+
+    market_agent = MarketAgent()
+
+
+    market = (
+        market_agent
+        .analyze_symbol(
+            "AAPL"
+        )
+    )
+
+
+    generate_market_report(
+        market
+    )
+
+
+
+    # =========================
+    # Strategy Agent
+    # =========================
+
+    strategy_agent = StrategyAgent()
+
+
+    signals = (
+        strategy_agent
+        .analyze(
+            market
+        )
+    )
+
+
+    generate_strategy_report(
+        signals
+    )
+
+    # =========================
+    # Local AI Agent
+    # =========================
+
+
+    ai_agent = AITradingAgent()
+
+
+    ai_response = (
+        ai_agent
+        .analyze(
+
+            portfolio,
+
+            market,
+
+            signals
+
+        )
+    )
+
+
+    generate_ai_report(
+        ai_response
+    )
 
 
 if __name__ == "__main__":
