@@ -1,5 +1,6 @@
 class RiskAgent:
 
+
     def analyze(
         self,
         portfolio,
@@ -18,9 +19,11 @@ class RiskAgent:
 
 
         if portfolio_value is None:
+
             raise ValueError(
                 "Portfolio value missing from portfolio data"
             )
+
 
 
         # =========================
@@ -43,7 +46,9 @@ class RiskAgent:
         )
 
 
+
         results = {}
+
 
 
         # =========================
@@ -51,9 +56,13 @@ class RiskAgent:
         # =========================
 
         position_percentage = (
+
             trade_size /
+
             portfolio_value
+
         ) * 100
+
 
 
         results["position_size"] = {
@@ -66,9 +75,13 @@ class RiskAgent:
             "limit": 10,
 
             "status":
+
                 "PASS"
+
                 if position_percentage <= 10
+
                 else "FAIL"
+
         }
 
 
@@ -78,9 +91,13 @@ class RiskAgent:
         # =========================
 
         options_percentage = (
+
             options_value /
+
             portfolio_value
+
         ) * 100
+
 
 
         results["options_exposure"] = {
@@ -93,9 +110,13 @@ class RiskAgent:
             "limit": 20,
 
             "status":
+
                 "PASS"
+
                 if options_percentage <= 20
+
                 else "FAIL"
+
         }
 
 
@@ -105,9 +126,13 @@ class RiskAgent:
         # =========================
 
         loss_percentage = (
+
             today_loss /
+
             portfolio_value
+
         ) * 100
+
 
 
         results["daily_loss"] = {
@@ -120,36 +145,75 @@ class RiskAgent:
             "limit": 2,
 
             "status":
+
                 "PASS"
+
                 if loss_percentage <= 2
+
                 else "FAIL"
+
         }
 
 
 
         # =========================
-        # Final Decision
+        # Final Risk Decision
         # =========================
 
         failed_checks = [
 
             check
+
             for check in results.values()
 
-            if check["status"] == "FAIL"
+            if isinstance(check, dict)
+
+            and check["status"] == "FAIL"
 
         ]
 
+
+
+        approved = (
+
+            len(failed_checks) == 0
+
+        )
+
+
+
+        # Required by DecisionAgent
+
+        results["approved"] = approved
+
+
+
+        # Existing report compatibility
 
         results["trade_status"] = (
 
             "APPROVED"
 
-            if len(failed_checks) == 0
+            if approved
 
             else "REJECTED"
 
         )
+
+
+
+        # Additional summary
+
+        results["risk_level"] = (
+
+            "LOW"
+
+            if approved
+
+            else "HIGH"
+
+        )
+
 
 
         return results
