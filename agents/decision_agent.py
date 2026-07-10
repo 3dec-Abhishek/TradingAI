@@ -1,48 +1,30 @@
-from learning.confidence_adjuster import ConfidenceAdjuster
-
-
-
 class DecisionAgent:
 
 
     def __init__(self):
 
-
-        self.confidence_adjuster = ConfidenceAdjuster()
-
+        pass
 
 
 
     def analyze(
-
         self,
-
         portfolio,
-
         market,
-
         signals,
-
         risk,
-
         ai_response,
-
-        portfolio_health=None,
-
-        history=None,
-
-        best_strategy=None
-
+        regime=None
     ):
 
 
-
         symbol = market.get(
-
-            "symbol"
-
+            "symbol",
+            "UNKNOWN"
         )
 
+
+        confidence = 50
 
 
         reasons = []
@@ -50,253 +32,390 @@ class DecisionAgent:
 
 
         # =========================
-        # Risk Protection
-        # =========================
-
-        if risk.get(
-
-            "trade_status"
-
-        ) == "REJECTED":
-
-
-            return {
-
-
-                "symbol":
-
-                symbol,
-
-
-                "action":
-
-                "HOLD",
-
-
-                "confidence":
-
-                90,
-
-
-                "reason":
-
-                [
-
-                    "Risk rejected trade"
-
-                ]
-
-            }
-
-
-
-
-
-        buy_votes = 0
-
-        sell_votes = 0
-
-
-
-
-        selected_strategy = None
-
-
-
-
-        # =========================
-        # Strategy Evaluation
+        # Strategy Analysis
         # =========================
 
 
-        for signal in signals:
+        strategy_action = "HOLD"
 
 
-            name = signal.get(
+        if isinstance(signals, list):
 
-                "strategy"
+
+            buy_votes = 0
+
+            sell_votes = 0
+
+
+            for signal in signals:
+
+
+                action = signal.get(
+
+                    "signal",
+
+                    signal.get(
+
+                        "action",
+
+                        "HOLD"
+
+                    )
+
+                )
+
+
+                if action == "BUY":
+
+                    buy_votes += 1
+
+
+                elif action == "SELL":
+
+                    sell_votes += 1
+
+
+
+            if buy_votes > sell_votes:
+
+                strategy_action = "BUY"
+
+
+            elif sell_votes > buy_votes:
+
+                strategy_action = "SELL"
+
+
+
+        elif isinstance(signals, dict):
+
+
+            strategy_action = signals.get(
+
+                "action",
+
+                signals.get(
+
+                    "signal",
+
+                    "HOLD"
+
+                )
 
             )
 
 
-            value = signal.get(
 
-                "signal"
-
-            )
-
+        # =========================
+        # Base Confidence
+        # =========================
 
 
-            if (
-
-                best_strategy
-
-                and
-
-                name == best_strategy
-
-            ):
-
-                selected_strategy = signal
+        if strategy_action == "BUY":
 
 
-
-            if value == "BUY":
-
-                buy_votes += 1
-
-
-
-            elif value == "SELL":
-
-                sell_votes += 1
-
-
-
-
-
-        if selected_strategy:
-
+            confidence += 25
 
             reasons.append(
 
-                "Best performing strategy: "
-
-                +
-
-                best_strategy
+                "Strategy signals support BUY"
 
             )
 
 
 
-            if selected_strategy.get(
-
-                "signal"
-
-            ) == "BUY":
+        elif strategy_action == "SELL":
 
 
-                buy_votes += 1
-
-
-
-            elif selected_strategy.get(
-
-                "signal"
-
-            ) == "SELL":
-
-
-                sell_votes += 1
-
-
-
-
-
-
-        # =========================
-        # Final Action
-        # =========================
-
-
-        if buy_votes > sell_votes:
-
-
-            action = "BUY"
-
-            confidence = 65
-
+            confidence += 25
 
             reasons.append(
 
-                "Strategy voting favors BUY"
+                "Strategy signals support SELL"
 
             )
-
-
-
-        elif sell_votes > buy_votes:
-
-
-            action = "SELL"
-
-            confidence = 65
-
-
-            reasons.append(
-
-                "Strategy voting favors SELL"
-
-            )
-
 
 
         else:
 
 
-            action = "HOLD"
-
-            confidence = 50
-
-
             reasons.append(
 
-                "No strategy agreement"
+                "No strong strategy signal"
 
             )
 
 
 
+        # =========================
+        # Risk Evaluation
+        # =========================
+
+
+        risk_status = risk.get(
+
+            "status",
+
+            "UNKNOWN"
+
+        )
+
+
+        if risk_status in [
+
+            "FAIL",
+
+            "REJECTED"
+
+        ]:
+
+
+            confidence -= 40
+
+
+            reasons.append(
+
+                "Risk rejected trade"
+
+            )
+
+
+
+        elif risk_status in [
+
+            "PASS",
+
+            "APPROVED"
+
+        ]:
+
+
+            confidence += 10
+
+
+            reasons.append(
+
+                "Risk approved"
+
+            )
 
 
 
         # =========================
-        # Learning Adjustment
+        # Market Regime
         # =========================
 
 
-        confidence = self.confidence_adjuster.adjust_confidence(
+        if regime:
 
-            action,
 
-            confidence,
+            current_regime = regime.get(
 
-            history or []
+                "regime",
+
+                "UNKNOWN"
+
+            )
+
+
+            if current_regime == "BULLISH":
+
+
+                confidence += 10
+
+
+                reasons.append(
+
+                    "Bullish market regime"
+
+                )
+
+
+
+            elif current_regime == "BEARISH":
+
+
+                confidence -= 20
+
+
+                reasons.append(
+
+                    "Bearish market regime"
+
+                )
+
+
+
+            elif current_regime == "HIGH_VOLATILITY":
+
+
+                confidence -= 15
+
+
+                reasons.append(
+
+                    "High volatility detected"
+
+                )
+
+
+
+            elif current_regime == "SIDEWAYS":
+
+
+                confidence -= 5
+
+
+                reasons.append(
+
+                    "Sideways market"
+
+                )
+
+
+
+        # =========================
+        # AI Recommendation
+        # =========================
+
+
+        if isinstance(ai_response, dict):
+
+
+            ai_action = ai_response.get(
+
+                "action",
+
+                "HOLD"
+
+            )
+
+
+            if ai_action == strategy_action:
+
+
+                confidence += 5
+
+
+                reasons.append(
+
+                    "AI agrees with strategy"
+
+                )
+
+
+
+        # =========================
+        # Clamp Confidence
+        # =========================
+
+
+        confidence = max(
+
+            0,
+
+            min(
+
+                confidence,
+
+                100
+
+            )
 
         )
 
 
 
-        reasons.append(
-
-            "Confidence adjusted from historical performance"
-
-        )
+        # =========================
+        # Final Decision
+        # =========================
 
 
+        action = "HOLD"
+
+
+
+        if confidence >= 60:
+
+
+            if strategy_action == "BUY":
+
+                action = "BUY"
+
+
+            elif strategy_action == "SELL":
+
+                action = "SELL"
+
+
+
+        # =========================
+        # Final Object
+        # =========================
 
 
         return {
 
 
-            "symbol":
-
-            symbol,
+            "symbol": symbol,
 
 
-            "action":
-
-            action,
+            "action": action,
 
 
-            "confidence":
-
-            confidence,
+            "confidence": confidence,
 
 
-            "reason":
+            "strategy": self.extract_strategy(
 
-            reasons
+                signals
+
+            ),
+
+
+            "regime": (
+
+                regime.get("regime")
+
+                if regime
+
+                else "UNKNOWN"
+
+            ),
+
+
+            "reason": reasons
+
 
         }
+
+
+
+
+    def extract_strategy(self, signals):
+
+
+        if isinstance(signals, dict):
+
+            return signals.get(
+
+                "strategy",
+
+                "UNKNOWN"
+
+            )
+
+
+        if isinstance(signals, list) and len(signals) > 0:
+
+
+            return signals[0].get(
+
+                "strategy",
+
+                "UNKNOWN"
+
+            )
+
+
+        return "UNKNOWN"

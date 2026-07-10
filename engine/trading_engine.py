@@ -60,7 +60,8 @@ from reports.exit_execution_report import generate_exit_execution_report
 from reports.exit_execution_report import generate_exit_execution_report 
 from analytics.performance_analyzer import PerformanceAnalyzer
 from optimization.strategy_optimizer import StrategyOptimizer
-from adaptive.adaptive_strategy import AdaptiveStrategy, AdaptiveStrategyEngine
+from adaptive.adaptive_strategy import AdaptiveStrategyEngine
+from market.regime_detector import MarketRegimeDetector
 
 class TradingEngine:
 
@@ -87,6 +88,7 @@ class TradingEngine:
         )
 
         self.market_agent = MarketAgent()
+        self.regime_detector = MarketRegimeDetector()
 
         self.strategy_agent = StrategyAgent()
 
@@ -231,6 +233,15 @@ class TradingEngine:
 
         )
 
+        regime = self.regime_detector.analyze(market)
+        print("\n")
+        print("="* 50)
+        print("MARKET REGIME")
+        print("="* 50)
+        print(f"Market Regime: {regime}")
+        print("DESCRIPTION:", self.regime_detector.get_regime_description(regime))
+        print("="* 50)
+
 
         generate_market_report(
             market
@@ -364,8 +375,8 @@ class TradingEngine:
 
             risk,
 
-            ai_response
-
+            ai_response,
+            regime
         )
 
 
