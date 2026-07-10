@@ -1,4 +1,15 @@
+from learning.confidence_adjuster import ConfidenceAdjuster
+
+
+
 class DecisionAgent:
+
+
+    def __init__(self):
+
+
+        self.confidence_adjuster = ConfidenceAdjuster()
+
 
 
 
@@ -16,79 +27,37 @@ class DecisionAgent:
 
         ai_response,
 
-        portfolio_health=None
+        portfolio_health=None,
+
+        history=None,
+
+        best_strategy=None
 
     ):
 
 
 
-        # =========================
-        # Portfolio Safety Check
-        # =========================
+        symbol = market.get(
 
+            "symbol"
 
-        if portfolio_health:
-
-
-            if portfolio_health.get(
-
-                "status"
-
-            ) == "WARNING":
+        )
 
 
 
-                return {
-
-
-                    "symbol":
-
-                    market["symbol"],
-
-
-
-                    "action":
-
-                    "HOLD",
-
-
-
-                    "confidence":
-
-                    80,
-
-
-
-                    "reason":[
-
-                        "Portfolio risk warning",
-
-                        portfolio_health.get(
-
-                            "alerts",
-
-                            []
-
-                        )
-
-                    ]
-
-                }
-
+        reasons = []
 
 
 
         # =========================
-        # Risk Check
+        # Risk Protection
         # =========================
-
 
         if risk.get(
 
             "trade_status"
 
-        ) != "APPROVED":
-
+        ) == "REJECTED":
 
 
             return {
@@ -96,8 +65,7 @@ class DecisionAgent:
 
                 "symbol":
 
-                market["symbol"],
-
+                symbol,
 
 
                 "action":
@@ -105,14 +73,14 @@ class DecisionAgent:
                 "HOLD",
 
 
-
                 "confidence":
 
                 90,
 
 
+                "reason":
 
-                "reason":[
+                [
 
                     "Risk rejected trade"
 
@@ -123,74 +91,144 @@ class DecisionAgent:
 
 
 
+
+        buy_votes = 0
+
+        sell_votes = 0
+
+
+
+
+        selected_strategy = None
+
+
+
+
         # =========================
-        # Strategy Signals
+        # Strategy Evaluation
         # =========================
-
-
-        buy_score = 0
-
-        sell_score = 0
-
-
 
 
         for signal in signals:
 
 
-            if signal["signal"] == "BUY":
+            name = signal.get(
+
+                "strategy"
+
+            )
 
 
-                buy_score += signal.get(
+            value = signal.get(
 
-                    "confidence",
+                "signal"
 
-                    0
-
-                )
+            )
 
 
 
-            elif signal["signal"] == "SELL":
+            if (
+
+                best_strategy
+
+                and
+
+                name == best_strategy
+
+            ):
+
+                selected_strategy = signal
 
 
-                sell_score += signal.get(
 
-                    "confidence",
+            if value == "BUY":
 
-                    0
+                buy_votes += 1
 
-                )
+
+
+            elif value == "SELL":
+
+                sell_votes += 1
+
+
+
+
+
+        if selected_strategy:
+
+
+            reasons.append(
+
+                "Best performing strategy: "
+
+                +
+
+                best_strategy
+
+            )
+
+
+
+            if selected_strategy.get(
+
+                "signal"
+
+            ) == "BUY":
+
+
+                buy_votes += 1
+
+
+
+            elif selected_strategy.get(
+
+                "signal"
+
+            ) == "SELL":
+
+
+                sell_votes += 1
+
+
 
 
 
 
         # =========================
-        # Decision Logic
+        # Final Action
         # =========================
 
 
-        if buy_score > sell_score:
-
+        if buy_votes > sell_votes:
 
 
             action = "BUY"
 
-
-            confidence = buy_score
-
+            confidence = 65
 
 
+            reasons.append(
 
-        elif sell_score > buy_score:
+                "Strategy voting favors BUY"
 
+            )
+
+
+
+        elif sell_votes > buy_votes:
 
 
             action = "SELL"
 
+            confidence = 65
 
-            confidence = sell_score
 
+            reasons.append(
+
+                "Strategy voting favors SELL"
+
+            )
 
 
 
@@ -199,8 +237,42 @@ class DecisionAgent:
 
             action = "HOLD"
 
-
             confidence = 50
+
+
+            reasons.append(
+
+                "No strategy agreement"
+
+            )
+
+
+
+
+
+
+        # =========================
+        # Learning Adjustment
+        # =========================
+
+
+        confidence = self.confidence_adjuster.adjust_confidence(
+
+            action,
+
+            confidence,
+
+            history or []
+
+        )
+
+
+
+        reasons.append(
+
+            "Confidence adjusted from historical performance"
+
+        )
 
 
 
@@ -208,11 +280,9 @@ class DecisionAgent:
         return {
 
 
-
             "symbol":
 
-            market["symbol"],
-
+            symbol,
 
 
             "action":
@@ -220,25 +290,13 @@ class DecisionAgent:
             action,
 
 
-
             "confidence":
 
-            min(
-
-                confidence,
-
-                100
-
-            ),
+            confidence,
 
 
+            "reason":
 
-            "reason":[
-
-
-                "Decision generated from strategy + risk + AI analysis"
-
-
-            ]
+            reasons
 
         }

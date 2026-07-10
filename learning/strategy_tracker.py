@@ -1,103 +1,74 @@
-from collections import defaultdict
+from learning.strategy_intelligence import StrategyIntelligence
+
 
 
 class StrategyTracker:
 
+
     def __init__(self, tracker):
 
-        self.tracker = tracker
 
-    ##################################################
+        self.performance_tracker = tracker
 
-    def analyze(self):
 
-        trades = self.tracker.get_all_trades()
+        self.intelligence = StrategyIntelligence()
 
-        grouped = defaultdict(list)
 
-        for trade in trades:
 
-            strategy = trade.get(
-                "strategy",
-                "UNKNOWN"
-            )
 
-            grouped[strategy].append(
-                trade
-            )
+    def record(
 
-        report = {}
+        self,
 
-        for strategy, history in grouped.items():
+        strategy,
 
-            wins = len(
+        trade_result
 
-                [
+    ):
 
-                    trade
 
-                    for trade in history
+        if not strategy:
 
-                    if trade["profit"] > 0
+            strategy = "UNKNOWN"
 
-                ]
+
+
+        success = (
+
+            trade_result.get(
+
+                "status"
 
             )
 
-            losses = len(history) - wins
+            ==
 
-            total_profit = round(
+            "FILLED"
 
-                sum(
+        )
 
-                    trade["profit"]
 
-                    for trade in history
 
-                ),
+        self.intelligence.record_strategy(
 
-                2
+            strategy,
 
-            )
+            success
 
-            average_profit = 0
+        )
 
-            if len(history):
 
-                average_profit = round(
 
-                    total_profit
 
-                    / len(history),
+    def get_rankings(self):
 
-                    2
 
-                )
+        return self.intelligence.rank_strategies()
 
-            report[strategy] = {
 
-                "trades": len(history),
 
-                "wins": wins,
 
-                "losses": losses,
+    def get_best_strategy(self):
 
-                "win_rate": round(
 
-                    wins
-
-                    / len(history)
-
-                    * 100,
-
-                    2
-
-                ) if history else 0,
-
-                "total_profit": total_profit,
-
-                "average_profit": average_profit
-
-            }
-
-        return report
+        return self.intelligence.best_strategy()

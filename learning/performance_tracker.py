@@ -1,227 +1,215 @@
-import json
-import os
-from datetime import datetime
+from memory.persistent_memory import PersistentMemory
+
 
 
 class PerformanceTracker:
 
+
     def __init__(self):
 
-        self.file = "data/trade_history.json"
 
-        os.makedirs("data", exist_ok=True)
+        self.memory = PersistentMemory()
 
-        if not os.path.exists(self.file):
 
-            with open(self.file, "w") as f:
-                json.dump([], f, indent=4)
+        self.history = self.memory.get_history()
 
-        self.trades = self.load()
 
-    # =============================================
 
-    def load(self):
 
-        try:
-
-            with open(self.file, "r") as f:
-
-                return json.load(f)
-
-        except Exception:
-
-            return []
-
-    # =============================================
-
-    def save(self):
-
-        with open(self.file, "w") as f:
-
-            json.dump(self.trades, f, indent=4)
-
-    # =============================================
-
-    def add_trade(
+    def record_trade(
 
         self,
 
-        symbol,
-
-        strategy,
-
-        action,
-
-        entry_price,
-
-        exit_price,
-
-        quantity,
-
-        confidence,
-
-        risk,
-
-        ai_summary,
-
-        market_condition="UNKNOWN"
+        trade_result
 
     ):
 
-        profit = (exit_price - entry_price) * quantity
 
-        percent = 0
+        if not trade_result:
 
-        if entry_price > 0:
 
-            percent = round(
+            return None
 
-                ((exit_price - entry_price)
 
-                / entry_price)
 
-                * 100,
+        status = trade_result.get(
+
+            "status",
+
+            "UNKNOWN"
+
+        )
+
+
+        action = trade_result.get(
+
+            "action",
+
+            "HOLD"
+
+        )
+
+
+
+        success = (
+
+            status == "FILLED"
+
+        )
+
+
+
+        trade = {
+
+
+            "symbol":
+
+            trade_result.get(
+
+                "symbol",
+
+                ""
+
+            ),
+
+
+            "action":
+
+            action,
+
+
+            "quantity":
+
+            trade_result.get(
+
+                "quantity",
+
+                0
+
+            ),
+
+
+            "price":
+
+            trade_result.get(
+
+                "price",
+
+                0
+
+            ),
+
+
+            "status":
+
+            status,
+
+
+            "success":
+
+            success
+
+        }
+
+
+
+        self.history.append(
+
+            trade
+
+        )
+
+
+
+        self.memory.save_trade(
+
+            trade
+
+        )
+
+
+
+        return trade
+
+
+
+
+
+    def get_history(self):
+
+
+        return self.history
+
+
+
+
+
+    def get_statistics(self):
+
+
+        total = len(
+
+            self.history
+
+        )
+
+
+
+        if total == 0:
+
+
+            return {
+
+
+                "total_trades":0,
+
+                "win_rate":0
+
+            }
+
+
+
+        wins = sum(
+
+            1
+
+            for trade in self.history
+
+            if trade.get(
+
+                "success"
+
+            )
+
+        )
+
+
+
+        return {
+
+
+            "total_trades":
+
+            total,
+
+
+            "winning_trades":
+
+            wins,
+
+
+            "win_rate":
+
+            round(
+
+                wins /
+
+                total *
+
+                100,
 
                 2
 
             )
 
-        trade = {
-
-            "timestamp": datetime.now().isoformat(),
-
-            "symbol": symbol,
-
-            "strategy": strategy,
-
-            "action": action,
-
-            "entry_price": entry_price,
-
-            "exit_price": exit_price,
-
-            "quantity": quantity,
-
-            "profit": round(profit, 2),
-
-            "percent": percent,
-
-            "confidence": confidence,
-
-            "risk": risk,
-
-            "market_condition": market_condition,
-
-            "ai_summary": ai_summary
-
         }
-
-        self.trades.append(trade)
-
-        self.save()
-
-        return trade
-
-    # =============================================
-
-    def get_all_trades(self):
-
-        return self.trades
-
-    # =============================================
-
-    def total_profit(self):
-
-        return round(
-
-            sum(
-
-                trade["profit"]
-
-                for trade in self.trades
-
-            ),
-
-            2
-
-        )
-
-    # =============================================
-
-    def total_trades(self):
-
-        return len(self.trades)
-
-    # =============================================
-
-    def winning_trades(self):
-
-        return len(
-
-            [
-
-                trade
-
-                for trade in self.trades
-
-                if trade["profit"] > 0
-
-            ]
-
-        )
-
-    # =============================================
-
-    def losing_trades(self):
-
-        return len(
-
-            [
-
-                trade
-
-                for trade in self.trades
-
-                if trade["profit"] <= 0
-
-            ]
-
-        )
-
-    # =============================================
-
-    def win_rate(self):
-
-        if len(self.trades) == 0:
-
-            return 0
-
-        return round(
-
-            self.winning_trades()
-
-            / len(self.trades)
-
-            * 100,
-
-            2
-
-        )
-
-    # =============================================
-
-    def average_profit(self):
-
-        if len(self.trades) == 0:
-
-            return 0
-
-        return round(
-
-            self.total_profit()
-
-            / len(self.trades),
-
-            2
-
-        )

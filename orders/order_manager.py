@@ -1,3 +1,7 @@
+from broker.paper_broker import PaperBroker
+
+
+
 class OrderManager:
 
 
@@ -7,55 +11,116 @@ class OrderManager:
 
 
 
-    def execute(self, decision, market):
+    def execute(
+
+        self,
+
+        decision,
+
+        market
+
+    ):
 
 
-        symbol = decision["symbol"]
+        action = decision.get(
 
-        action = decision["action"]
+            "action",
 
+            "HOLD"
 
-        price = market["price"]
-
-
-
-        if action == "BUY":
+        )
 
 
-            return self.broker.buy(
+        symbol = market.get(
 
-                symbol,
+            "symbol"
 
-                1,
-
-                price
-
-            )
+        )
 
 
+        price = market.get(
 
-        elif action == "SELL":
+            "price"
 
-
-            return self.broker.sell(
-
-                symbol,
-
-                1,
-
-                price
-
-            )
+        )
 
 
 
-        else:
+        # =========================
+        # No Trade
+        # =========================
+
+        if action == "HOLD":
 
 
             return {
 
-                "status":"NO ACTION",
 
-                "reason":"AI decided HOLD"
+                "status":
+
+                "NO TRADE",
+
+
+                "action":
+
+                "HOLD",
+
+
+                "symbol":
+
+                symbol,
+
+
+                "quantity":
+
+                0,
+
+
+                "price":
+
+                price
 
             }
+
+
+
+        # =========================
+        # Create Order
+        # =========================
+
+
+        order = {
+
+
+            "action":
+
+            action,
+
+
+            "symbol":
+
+            symbol,
+
+
+            "quantity":
+
+            1,
+
+
+            "price":
+
+            price
+
+        }
+
+
+
+        result = self.broker.execute_order(
+
+            order
+
+        )
+
+
+
+        return result
