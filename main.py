@@ -1,78 +1,109 @@
+import time
+
+
 from engine.trading_engine import TradingEngine
 
+from config.trading_config import TRADING_INTERVAL
 
 
 
-def main():
 
 
-    print("\nStarting Trading AI System...\n")
-
-
-    engine = TradingEngine()
+class TradingBot:
 
 
 
-    result = engine.run()
+    def __init__(self):
+
+
+        self.engine = TradingEngine()
 
 
 
-    print("\n")
-
-    print("=" * 60)
-
-    print("TRADING CYCLE COMPLETE")
-
-    print("=" * 60)
+        self.running = True
 
 
 
-    print(
 
-        "Decision:",
 
-        result.get(
+    def start(self):
 
-            "decision"
+
+        print(
+
+            "\nAUTONOMOUS TRADING BOT STARTED\n"
 
         )
 
-    )
 
 
-    print(
-
-        "Trade:",
-
-        result.get(
-
-            "trade"
-
-        )
-
-    )
-
-
-    print(
-
-        "Learning:",
-
-        result.get(
-
-            "learning"
-
-        )
-
-    )
-
-
-    print("=" * 60)
+        while self.running:
 
 
 
+            try:
 
 
-if __name__ == "__main__":
+
+                result = self.engine.run()
 
 
-    main()
+
+                print(
+
+                    "\nCycle finished"
+
+                )
+
+
+
+                print(
+
+                    "Waiting for next cycle..."
+
+                )
+
+
+
+                time.sleep(
+
+                    TRADING_INTERVAL
+
+                )
+
+
+
+
+            except KeyboardInterrupt:
+
+
+                print(
+
+                    "\nBot stopped manually"
+
+                )
+
+
+                self.running = False
+
+
+
+
+            except Exception as e:
+
+
+                print(
+
+                    "\nTrading Error:",
+
+                    e
+
+                )
+
+
+
+                time.sleep(
+
+                    30
+
+                )

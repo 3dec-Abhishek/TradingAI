@@ -1,13 +1,26 @@
-from broker.paper_broker import PaperBroker
+from portfolio.portfolio_account import PortfolioAccount
 
 
 
 class OrderManager:
 
 
-    def __init__(self, broker):
+
+    def __init__(
+
+        self,
+
+        broker
+
+    ):
+
 
         self.broker = broker
+
+
+        self.account = PortfolioAccount()
+
+
 
 
 
@@ -31,6 +44,7 @@ class OrderManager:
         )
 
 
+
         symbol = market.get(
 
             "symbol"
@@ -46,9 +60,11 @@ class OrderManager:
 
 
 
+
         # =========================
-        # No Trade
+        # HOLD
         # =========================
+
 
         if action == "HOLD":
 
@@ -68,28 +84,103 @@ class OrderManager:
 
                 "symbol":
 
-                symbol,
-
-
-                "quantity":
-
-                0,
-
-
-                "price":
-
-                price
+                symbol
 
             }
 
 
 
+
+        quantity = 1
+
+
+
+
         # =========================
-        # Create Order
+        # BUY
         # =========================
 
 
-        order = {
+        if action == "BUY":
+
+
+            broker_result = self.broker.buy(
+
+                symbol,
+
+                quantity,
+
+                price
+
+            )
+
+
+
+            self.account.buy(
+
+                symbol,
+
+                quantity,
+
+                price
+
+            )
+
+
+
+        # =========================
+        # SELL
+        # =========================
+
+
+        elif action == "SELL":
+
+
+            broker_result = self.broker.sell(
+
+                symbol,
+
+                quantity,
+
+                price
+
+            )
+
+
+
+            self.account.sell(
+
+                symbol,
+
+                quantity,
+
+                price
+
+            )
+
+
+
+        else:
+
+
+            return {
+
+
+                "status":
+
+                "INVALID ACTION"
+
+            }
+
+
+
+
+        return {
+
+
+            "status":
+
+            "FILLED",
 
 
             "action":
@@ -104,23 +195,28 @@ class OrderManager:
 
             "quantity":
 
-            1,
+            quantity,
 
 
             "price":
 
-            price
+            price,
+
+
+            "portfolio":
+
+            {
+
+
+                "cash":
+
+                self.account.get_cash(),
+
+
+                "positions":
+
+                self.account.get_positions()
+
+            }
 
         }
-
-
-
-        result = self.broker.execute_order(
-
-            order
-
-        )
-
-
-
-        return result

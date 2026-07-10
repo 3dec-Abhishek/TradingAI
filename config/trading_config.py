@@ -1,0 +1,14 @@
+TRADING_INTERVAL = 300
+
+
+MAX_DAILY_TRADES = 5
+
+
+MARKETS = [
+
+    "AAPL"
+
+]
+
+
+BOT_MODE = "PAPER"

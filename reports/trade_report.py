@@ -3,11 +3,11 @@ def generate_trade_report(result):
 
     print("\n")
 
-    print("=" * 50)
+    print("="*50)
 
-    print("TRADE DECISION")
+    print("TRADE EXECUTION REPORT")
 
-    print("=" * 50)
+    print("="*50)
 
 
 
@@ -15,13 +15,7 @@ def generate_trade_report(result):
 
         "Status:",
 
-        result.get(
-
-            "status",
-
-            "UNKNOWN"
-
-        )
+        result.get("status")
 
     )
 
@@ -30,13 +24,7 @@ def generate_trade_report(result):
 
         "Action:",
 
-        result.get(
-
-            "action",
-
-            "NONE"
-
-        )
+        result.get("action")
 
     )
 
@@ -45,13 +33,7 @@ def generate_trade_report(result):
 
         "Symbol:",
 
-        result.get(
-
-            "symbol",
-
-            "NONE"
-
-        )
+        result.get("symbol")
 
     )
 
@@ -60,13 +42,7 @@ def generate_trade_report(result):
 
         "Quantity:",
 
-        result.get(
-
-            "quantity",
-
-            0
-
-        )
+        result.get("quantity")
 
     )
 
@@ -75,15 +51,35 @@ def generate_trade_report(result):
 
         "Price:",
 
-        result.get(
-
-            "price",
-
-            0
-
-        )
+        result.get("price")
 
     )
 
 
-    print("=" * 50)
+
+    if "portfolio" in result:
+
+
+        print("\nPortfolio Update")
+
+
+        print(
+
+            "Cash:",
+
+            result["portfolio"]["cash"]
+
+        )
+
+
+        print(
+
+            "Positions:",
+
+            result["portfolio"]["positions"]
+
+        )
+
+
+
+    print("="*50)

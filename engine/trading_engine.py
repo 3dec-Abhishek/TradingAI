@@ -1,5 +1,7 @@
 from broker.paper_broker import PaperBroker
 
+from orders.order_manager import OrderManager
+
 
 from agents.portfolio_agent import PortfolioAgent
 from agents.market_agent import MarketAgent
@@ -9,9 +11,6 @@ from agents.ai_trading_agent import AITradingAgent
 from agents.decision_agent import DecisionAgent
 
 
-from orders.order_manager import OrderManager
-
-
 from options.options_chain import OptionsChain
 from options.options_analyzer import OptionsAnalyzer
 
@@ -19,10 +18,21 @@ from options.options_analyzer import OptionsAnalyzer
 from monitoring.portfolio_monitor import PortfolioMonitor
 
 
+from portfolio.portfolio_valuation import PortfolioValuation
+
+
+from risk.dynamic_risk import DynamicRiskEngine
+from risk.position_sizer import PositionSizer
+from risk.exit_manager import ExitManager
+
+
+from trading.trade_lifecycle import TradeLifecycleManager
+from trading.exit_executor import ExitExecutor
+
+
 from learning.performance_tracker import PerformanceTracker
 from learning.strategy_tracker import StrategyTracker
 from learning.learning_engine import LearningEngine
-
 
 
 from analytics.database_analyzer import DatabaseAnalyzer
@@ -40,22 +50,21 @@ from reports.decision_report import generate_decision_report
 from reports.trade_report import generate_trade_report
 from reports.learning_report import generate_learning_report
 from reports.intelligence_report import generate_intelligence_report
-
-
+from reports.valuation_report import generate_valuation_report
+from reports.dynamic_risk_report import generate_dynamic_risk_report
+from reports.position_size_report import generate_position_size_report
+from reports.exit_report import generate_exit_report
+from reports.lifecycle_report import generate_lifecycle_report
+from reports.exit_execution_report import generate_exit_execution_report
 
 
 
 class TradingEngine:
 
 
-
     def __init__(self):
 
-
-        print(
-            "\nInitializing Trading Engine...\n"
-        )
-
+        print("\nInitializing Trading Engine...\n")
 
 
         # =========================
@@ -71,23 +80,16 @@ class TradingEngine:
         # =========================
 
         self.portfolio_agent = PortfolioAgent(
-
             self.broker
-
         )
-
 
         self.market_agent = MarketAgent()
 
-
         self.strategy_agent = StrategyAgent()
-
 
         self.risk_agent = RiskAgent()
 
-
         self.ai_agent = AITradingAgent()
-
 
         self.decision_agent = DecisionAgent()
 
@@ -98,9 +100,7 @@ class TradingEngine:
         # =========================
 
         self.order_manager = OrderManager(
-
             self.broker
-
         )
 
 
@@ -110,7 +110,6 @@ class TradingEngine:
         # =========================
 
         self.options_chain = OptionsChain()
-
 
         self.options_analyzer = OptionsAnalyzer()
 
@@ -125,19 +124,48 @@ class TradingEngine:
 
 
         # =========================
-        # Learning System
+        # Portfolio
+        # =========================
+
+        self.valuation_engine = PortfolioValuation()
+
+
+
+        # =========================
+        # Risk
+        # =========================
+
+        self.dynamic_risk = DynamicRiskEngine()
+
+        self.position_sizer = PositionSizer()
+
+        self.exit_manager = ExitManager()
+
+
+
+        # =========================
+        # Trading Lifecycle
+        # =========================
+
+        self.lifecycle_manager = TradeLifecycleManager()
+
+
+        self.exit_executor = ExitExecutor(
+            self.order_manager
+        )
+
+
+
+        # =========================
+        # Learning
         # =========================
 
         self.performance_tracker = PerformanceTracker()
 
 
-
         self.strategy_tracker = StrategyTracker(
-
             self.performance_tracker
-
         )
-
 
 
         self.learning_engine = LearningEngine(
@@ -151,7 +179,7 @@ class TradingEngine:
 
 
         # =========================
-        # Database Intelligence
+        # Intelligence
         # =========================
 
         self.database_analyzer = DatabaseAnalyzer(
@@ -164,30 +192,24 @@ class TradingEngine:
 
 
 
-
-
     def run(self):
 
 
         print(
-
             "Starting Trading Cycle...\n"
-
         )
-
 
 
         # =========================
         # Portfolio
         # =========================
 
+
         portfolio = self.portfolio_agent.analyze()
 
 
         generate_report(
-
             portfolio
-
         )
 
 
@@ -195,6 +217,7 @@ class TradingEngine:
         # =========================
         # Market
         # =========================
+
 
         market = self.market_agent.analyze_symbol(
 
@@ -204,9 +227,7 @@ class TradingEngine:
 
 
         generate_market_report(
-
             market
-
         )
 
 
@@ -214,6 +235,7 @@ class TradingEngine:
         # =========================
         # Strategy
         # =========================
+
 
         signals = self.strategy_agent.analyze(
 
@@ -233,6 +255,7 @@ class TradingEngine:
         # =========================
         # Options
         # =========================
+
 
         chain = self.options_chain.get_chain(
 
@@ -255,9 +278,7 @@ class TradingEngine:
 
 
         generate_options_report(
-
             options
-
         )
 
 
@@ -266,19 +287,16 @@ class TradingEngine:
         # Risk
         # =========================
 
-        proposed_trade = {
 
+        proposed_trade = {
 
             "trade_size":1500,
 
-
             "options_value":2000,
-
 
             "today_loss":250
 
         }
-
 
 
         risk = self.risk_agent.analyze(
@@ -291,35 +309,15 @@ class TradingEngine:
 
 
         generate_risk_report(
-
             risk
-
         )
 
 
 
         # =========================
-        # Portfolio Monitor
+        # AI
         # =========================
 
-        monitor = self.portfolio_monitor.analyze(
-
-            portfolio
-
-        )
-
-
-        generate_monitor_report(
-
-            monitor
-
-        )
-
-
-
-        # =========================
-        # AI Analysis
-        # =========================
 
         ai_response = self.ai_agent.analyze(
 
@@ -333,27 +331,7 @@ class TradingEngine:
 
 
         generate_ai_report(
-
             ai_response
-
-        )
-
-
-
-        # =========================
-        # Learning Data
-        # =========================
-
-        history = self.performance_tracker.get_history()
-
-
-
-        best_strategy = (
-
-            self.strategy_tracker
-
-            .get_best_strategy()
-
         )
 
 
@@ -361,6 +339,7 @@ class TradingEngine:
         # =========================
         # Decision
         # =========================
+
 
         decision = self.decision_agent.analyze(
 
@@ -372,13 +351,7 @@ class TradingEngine:
 
             risk,
 
-            ai_response,
-
-            monitor,
-
-            history,
-
-            best_strategy
+            ai_response
 
         )
 
@@ -392,8 +365,92 @@ class TradingEngine:
 
 
         # =========================
-        # Execute
+        # Valuation
         # =========================
+
+
+        valuation = self.valuation_engine.calculate(
+
+            self.order_manager.account,
+
+            {
+
+                market["symbol"]:
+                market["price"]
+
+            }
+
+        )
+
+
+        generate_valuation_report(
+
+            valuation
+
+        )
+
+
+
+        # =========================
+        # Dynamic Risk
+        # =========================
+
+
+        dynamic_risk = self.dynamic_risk.analyze(
+
+            valuation,
+
+            proposed_trade
+
+        )
+
+
+        generate_dynamic_risk_report(
+
+            dynamic_risk
+
+        )
+
+
+
+        # =========================
+        # Position Sizing
+        # =========================
+
+
+        position_size = self.position_sizer.calculate(
+
+            valuation["portfolio_value"],
+
+            market["price"],
+
+            decision.get(
+
+                "confidence",
+
+                50
+
+            )
+
+        )
+
+
+        generate_position_size_report(
+
+            position_size
+
+        )
+
+
+        decision["quantity"] = position_size["quantity"]
+
+
+
+
+        # =========================
+        # Execute Entry
+        # =========================
+
 
         trade_result = self.order_manager.execute(
 
@@ -413,7 +470,89 @@ class TradingEngine:
 
 
         # =========================
-        # Learning Update
+        # Lifecycle Tracking
+        # =========================
+
+
+        if trade_result.get("status") == "FILLED":
+
+
+            lifecycle = self.lifecycle_manager.open_trade(
+
+                trade_result
+
+            )
+
+
+            generate_lifecycle_report(
+
+                lifecycle
+
+            )
+
+
+
+        # =========================
+        # Exit Management
+        # =========================
+
+
+        symbol = market["symbol"]
+
+
+
+        if symbol in self.order_manager.account.positions:
+
+
+            position = self.order_manager.account.positions[symbol]
+
+
+
+            exit_signal = self.exit_manager.evaluate(
+
+                position,
+
+                market["price"]
+
+            )
+
+
+            generate_exit_report(
+
+                exit_signal
+
+            )
+
+
+
+            # Automatic SELL
+
+            if exit_signal.get("action") == "SELL":
+
+
+                exit_result = self.exit_executor.execute_exit(
+
+                    exit_signal,
+
+                    symbol,
+
+                    market["price"],
+
+                    position["quantity"]
+
+                )
+
+
+                generate_exit_execution_report(
+
+                    exit_result
+
+                )
+
+
+
+        # =========================
+        # Learning
         # =========================
 
 
@@ -424,42 +563,32 @@ class TradingEngine:
         )
 
 
-
-        strategy_name = decision.get(
-
-            "strategy",
-
-            "UNKNOWN"
-
-        )
-
-
-
         self.strategy_tracker.record(
 
-            strategy_name,
+            decision.get(
+
+                "strategy",
+
+                "UNKNOWN"
+
+            ),
 
             trade_result
 
         )
 
 
-
-        learning_result = self.learning_engine.analyze()
+        learning = self.learning_engine.analyze()
 
 
 
         generate_learning_report(
 
-            learning_result
+            learning
 
         )
 
 
-
-        # =========================
-        # Intelligence Report
-        # =========================
 
         intelligence = self.database_analyzer.analyze()
 
@@ -474,45 +603,31 @@ class TradingEngine:
 
 
         print(
-
             "\n=================================================="
-
         )
 
         print(
-
             "TRADING CYCLE COMPLETE"
-
         )
 
         print(
-
             "=================================================="
-
         )
 
 
 
         return {
 
+            "decision": decision,
 
-            "decision":
+            "trade": trade_result,
 
-            decision,
+            "valuation": valuation,
 
+            "risk": dynamic_risk,
 
-            "trade":
+            "learning": learning,
 
-            trade_result,
-
-
-            "learning":
-
-            learning_result,
-
-
-            "intelligence":
-
-            intelligence
+            "intelligence": intelligence
 
         }
