@@ -5,7 +5,7 @@ class LocalLLM:
 
     def __init__(self):
         self.client = OpenAI(
-            base_url="http://127.0.0.1:8080/v1",
+            base_url="http://127.0.0.1:11434/v1",
             api_key="not-needed",
         )
 

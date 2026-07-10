@@ -55,13 +55,15 @@ from reports.dynamic_risk_report import generate_dynamic_risk_report
 from reports.position_size_report import generate_position_size_report
 from reports.exit_report import generate_exit_report
 from reports.lifecycle_report import generate_lifecycle_report
-from reports.exit_execution_report import generate_exit_execution_report
-
 from reports.exit_execution_report import generate_exit_execution_report 
 from analytics.performance_analyzer import PerformanceAnalyzer
 from optimization.strategy_optimizer import StrategyOptimizer
 from adaptive.adaptive_strategy import AdaptiveStrategyEngine
 from market.regime_detector import MarketRegimeDetector
+from risk.adaptive_position_sizer import AdaptivePositionSizer
+from risk.portfolio_allocator import PortfolioAllocator
+from market.universe_manager import UniverseManager
+from analytics.opportunity_ranker import OpportunityRanker
 
 class TradingEngine:
 
@@ -88,6 +90,8 @@ class TradingEngine:
         )
 
         self.market_agent = MarketAgent()
+        self.universe = UniverseManager()
+
         self.regime_detector = MarketRegimeDetector()
 
         self.strategy_agent = StrategyAgent()
@@ -97,6 +101,8 @@ class TradingEngine:
         self.ai_agent = AITradingAgent()
 
         self.decision_agent = DecisionAgent()
+        self.portfolio_allocator = PortfolioAllocator()
+        self.opportunity_ranker = OpportunityRanker()
 
 
 
@@ -141,9 +147,7 @@ class TradingEngine:
         # =========================
 
         self.dynamic_risk = DynamicRiskEngine()
-
-        self.position_sizer = PositionSizer()
-
+        self.adaptive_position_sizer = AdaptivePositionSizer()
         self.exit_manager = ExitManager()
 
 
@@ -219,19 +223,19 @@ class TradingEngine:
         generate_report(
             portfolio
         )
-
-
+        monitor=self.portfolio_monitor.analyze(portfolio)
+        generate_monitor_report(
+            monitor
+        )
 
         # =========================
         # Market
         # =========================
 
 
-        market = self.market_agent.analyze_symbol(
-
-            "AAPL"
-
-        )
+        market = []
+        for symbol in self.universe.get_symbols():
+            market.append(self.market_agent.analyze(symbol))
 
         regime = self.regime_detector.analyze(market)
         print("\n")
@@ -379,6 +383,31 @@ class TradingEngine:
             regime
         )
 
+        score = self.opportunity_ranker.score(
+
+            market,
+
+            signals,
+
+            decision,
+
+            regime
+
+        )
+        opportunities= [{
+            "symbol": market["symbol"],
+            "score": score,
+            "decision": decision
+        }]
+        ranking = self.opportunity_ranker.rank(opportunities)
+
+        print("\n")
+        print("="* 50)
+        print("OPPORTUNITY RANKING")
+        print("="* 50)
+        for i, item in enumerate(ranking, start=1):
+            print(f"{i}.{item['symbol']} - Score: {item['score']}")
+            print("="* 50)
 
         generate_decision_report(
 
@@ -442,19 +471,13 @@ class TradingEngine:
         # =========================
 
 
-        position_size = self.position_sizer.calculate(
+        position_size = self.adaptive_position_sizer.calculate(
 
-            valuation["portfolio_value"],
-
-            market["price"],
-
-            decision.get(
-
-                "confidence",
-
-                50
-
-            )
+            portfolio_value=valuation["portfolio_value"],
+            price=market["price"],
+            confidence=decision["confidence"],
+            regime=decision["regime"],
+            risk_status=risk["status"]
 
         )
 
@@ -467,6 +490,32 @@ class TradingEngine:
 
 
         decision["quantity"] = position_size["quantity"]
+        decision["position_value"] = position_size["position_value"]
+        decision["allocation"] = position_size["allocation"]
+
+        allocation = self.portfolio_allocator.evaluate_allocation(
+            portfolio,
+            decision,
+            position_size
+        )
+        if not allocation["approved"]:
+            decision["action"]= "HOLD"
+            decision["reasons"].extend(allocation["reason"])
+
+            print("\n")
+            print("="* 50)
+            print("PORTFOLIO ALLOCATION")
+            print("="* 50)
+            print(allocation)
+            print("=" * 50)
+
+        print("\n")
+        print("="* 50)
+        print("ADAPTIVE POSITION SIZING")
+        print("="* 50)
+        print("Allocation:", f"{position_size['allocation']}%")
+        print("Shares:",position_size["quantity"])
+        print("Capital",f"${position_size['position_value']}")
 
 
 
