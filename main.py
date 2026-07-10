@@ -1,109 +1,44 @@
-import time
+import warnings
+import traceback
 
+try:
+    from urllib3.exceptions import NotOpenSSLWarning
 
-from engine.trading_engine import TradingEngine
+    warnings.filterwarnings(
+        "ignore",
+        category=NotOpenSSLWarning
+    )
+except Exception:
+    pass
 
-from config.trading_config import TRADING_INTERVAL
 
+from engine.bot_runner import TradingBot
 
 
+def main():
 
+    print("\n" + "=" * 60)
+    print("TRADING AI SYSTEM")
+    print("=" * 60)
 
-class TradingBot:
+    try:
 
+        bot = TradingBot()
 
+        bot.start()
 
-    def __init__(self):
+    except KeyboardInterrupt:
 
+        print("\nTrading Bot stopped by user.")
 
-        self.engine = TradingEngine()
+    except Exception as e:     
+         print("\n" + "=" * 60)
+         print("APPLICATION ERROR")
+         print("=" * 60)
+         traceback.print_exc()
+         print("=" * 60)
 
 
+if __name__ == "__main__":
 
-        self.running = True
-
-
-
-
-
-    def start(self):
-
-
-        print(
-
-            "\nAUTONOMOUS TRADING BOT STARTED\n"
-
-        )
-
-
-
-        while self.running:
-
-
-
-            try:
-
-
-
-                result = self.engine.run()
-
-
-
-                print(
-
-                    "\nCycle finished"
-
-                )
-
-
-
-                print(
-
-                    "Waiting for next cycle..."
-
-                )
-
-
-
-                time.sleep(
-
-                    TRADING_INTERVAL
-
-                )
-
-
-
-
-            except KeyboardInterrupt:
-
-
-                print(
-
-                    "\nBot stopped manually"
-
-                )
-
-
-                self.running = False
-
-
-
-
-            except Exception as e:
-
-
-                print(
-
-                    "\nTrading Error:",
-
-                    e
-
-                )
-
-
-
-                time.sleep(
-
-                    30
-
-                )
+    main()

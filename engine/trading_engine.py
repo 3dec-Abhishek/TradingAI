@@ -57,7 +57,10 @@ from reports.exit_report import generate_exit_report
 from reports.lifecycle_report import generate_lifecycle_report
 from reports.exit_execution_report import generate_exit_execution_report
 
-
+from reports.exit_execution_report import generate_exit_execution_report 
+from analytics.performance_analyzer import PerformanceAnalyzer
+from optimization.strategy_optimizer import StrategyOptimizer
+from adaptive.adaptive_strategy import AdaptiveStrategy, AdaptiveStrategyEngine
 
 class TradingEngine:
 
@@ -162,7 +165,10 @@ class TradingEngine:
 
         self.performance_tracker = PerformanceTracker()
 
-
+        self.performance_analyzer = PerformanceAnalyzer(
+        )     
+        self.strategy_optimizer = StrategyOptimizer()
+        self.adaptive_engine = AdaptiveStrategyEngine()
         self.strategy_tracker = StrategyTracker(
             self.performance_tracker
         )
@@ -340,6 +346,13 @@ class TradingEngine:
         # Decision
         # =========================
 
+        strategy_name = signals.get("strategy", "UNKNOWN")
+        original_confidence = signals.get("confidence", 50)
+        adaptive_confidence = self.adaptive_engine.adjust_confidence(
+            strategy_name,
+            original_confidence
+        )
+        signals["confidence"] = adaptive_confidence
 
         decision = self.decision_agent.analyze(
 
@@ -559,36 +572,51 @@ class TradingEngine:
         self.performance_tracker.record_trade(
 
             trade_result
-
         )
 
-
-        self.strategy_tracker.record(
-
-            decision.get(
-
-                "strategy",
-
-                "UNKNOWN"
-
-            ),
-
+        self.performance_analyzer.add_trade(
             trade_result
-
         )
 
+        performance=self.performance_analyzer.analyze()
+
+        # self.strategy_tracker.record(
+        #     decision.get("strategy", "UNKNOWN"),trade_result
+        # )
+
+        strategy_name = decision.get("strategy", "UNKNOWN")
+        self.strategy_tracker.record(strategy_name, trade_result)
+        self.strategy_optimizer.record(strategy_name, trade_result)
+
+        strategy_analysis = self.strategy_optimizer.analyze()
+        adaptive_weights = self.adaptive_engine.update_weights(strategy_analysis)
+        best_strategy = self.strategy_optimizer.get_best_strategy()
 
         learning = self.learning_engine.analyze()
+        print("\n")
+        print("="* 50)
+        print("PERFORMANCE ANALYSIS")
+        print("="* 50)
 
-
+        for key, value in performance.items():
+            print(f"{key}: {value}")
+            print("=" * 50)
 
         generate_learning_report(
 
             learning
 
         )
+        print("\n")
+        print("="* 50)
+        print("STRATEGY OPTIMIZATION")
+        print("="* 50)
 
-
+        for strategy, data in strategy_analysis.items():
+            print(f"Strategy: {strategy}")
+            print(data)
+            print("BEST STRATEGY:", best_strategy)
+            print("=" * 50)
 
         intelligence = self.database_analyzer.analyze()
 
@@ -599,6 +627,14 @@ class TradingEngine:
             intelligence
 
         )
+
+        print("\n")
+        print("="* 50)
+        print("ADAPTIVE STRATEGY WEIGHTS")
+        print("="* 50)
+        for strategy, weight in adaptive_weights.items():
+            print(f"Strategy: {strategy}, Weight: {weight}")
+            print("=" * 50)
 
 
 
@@ -627,6 +663,8 @@ class TradingEngine:
             "risk": dynamic_risk,
 
             "learning": learning,
+
+            "performance": performance,
 
             "intelligence": intelligence
 
