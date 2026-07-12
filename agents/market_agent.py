@@ -1,6 +1,9 @@
+from unittest import result
+
 import yfinance as yf
 import pandas as pd
 import numpy as np
+from indicators.technical_engine import TechnicalEngine
 
 
 class MarketAgent:
@@ -9,6 +12,7 @@ class MarketAgent:
     def __init__(self):
 
         self.name = "Market Agent"
+        self.technical = TechnicalEngine()
 
 
 
@@ -38,6 +42,7 @@ class MarketAgent:
                 period="6mo"
             )
 
+            technical = self.technical.calculate(data)
 
             if data.empty:
 
@@ -94,6 +99,9 @@ class MarketAgent:
                 sma50
             )
 
+            result.update(
+                technical
+            )
 
             return {
 
@@ -113,12 +121,21 @@ class MarketAgent:
                 ),
 
 
-                "20_day_sma": round(
+                "sma20": round(
                     sma20,
                     2
                 ),
 
 
+                "sma50": round(
+                    sma50,
+                    2
+                ),
+
+                "20_day_sma": round(
+                    sma20,
+                    2
+                ),
                 "50_day_sma": round(
                     sma50,
                     2
@@ -160,7 +177,8 @@ class MarketAgent:
                 "price": 0,
 
                 "rsi": 50,
-
+                "sma20": 0,
+                "sma50": 0,
                 "20_day_sma": 0,
 
                 "50_day_sma": 0,

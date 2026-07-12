@@ -1,5 +1,9 @@
+from options.greeks_engine import GreeksEngine
+
 class OptionsAnalyzer:
 
+    def __init__(self):
+        self.greeks = GreeksEngine()
 
     def analyze(
         self,

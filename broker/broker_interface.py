@@ -1,13 +1,33 @@
 from abc import ABC, abstractmethod
 
 
+
 class BrokerInterface(ABC):
 
+
     @abstractmethod
-    def get_account(self):
+    def buy(
+        self,
+        symbol,
+        quantity
+    ):
+
         pass
 
 
+
     @abstractmethod
-    def get_positions(self):
+    def sell(
+        self,
+        symbol,
+        quantity
+    ):
+
+        pass
+
+
+
+    @abstractmethod
+    def account(self):
+
         pass

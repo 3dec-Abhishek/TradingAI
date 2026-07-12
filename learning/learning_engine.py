@@ -72,3 +72,14 @@ class LearningEngine:
                 )
 
         return feedback
+    
+    def recommend_strategy(self, performance):
+        if performance["win_rate"] > 60:
+
+            return "INCREASE"
+
+        elif performance["win_rate"] < 40:
+            return "DECREASE"
+    
+
+        return "MAINTAIN"

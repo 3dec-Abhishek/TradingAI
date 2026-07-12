@@ -7,6 +7,7 @@ from engine.trading_engine import TradingEngine
 from config.trading_config import TRADING_INTERVAL
 
 from utils.system_health import SystemHealth
+import traceback
 
 
 
@@ -180,10 +181,10 @@ class TradingBot:
                     e
                 )
 
-
-                print(
-                    "Retrying in 30 seconds..."
-                )
+                traceback.print_exc()
+                # print(
+                #     "Retrying in 30 seconds..."
+                # )
 
 
                 time.sleep(30)
