@@ -4,6 +4,7 @@ import yfinance as yf
 import pandas as pd
 import numpy as np
 from indicators.technical_engine import TechnicalEngine
+from core.market_data import MarketData
 
 
 class MarketAgent:

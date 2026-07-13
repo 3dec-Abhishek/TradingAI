@@ -2,69 +2,52 @@ class ReinforcementAgent:
 
 
 
-    def __init__(self):
-
-        self.q_table={}
-
-
-
-    def update(
+    def learn(
         self,
-        state,
-        action,
-        reward
+        memory
     ):
 
 
-        key=(state,action)
+        if len(memory)==0:
+
+            return {
 
 
-        old=self.q_table.get(
-            key,
-            0
-        )
+                "status":
 
+                "NO_DATA"
 
-        self.q_table[key]= (
-
-            old*0.8
-            +
-            reward*0.2
-
-        )
+            }
 
 
 
-    def best_action(
-        self,
-        state
-    ):
+        rewards=[
 
+            x["reward"]
 
-        choices={}
+            for x in memory
 
-
-        for (
-            s,a
-        ),value in self.q_table.items():
-
-
-            if s==state:
-
-                choices[a]=value
+        ]
 
 
 
-        if not choices:
-
-            return "HOLD"
+        average=sum(rewards)/len(rewards)
 
 
 
-        return max(
+        return {
 
-            choices,
 
-            key=choices.get
+            "learning_score":
 
-        )
+            round(
+                average,
+                3
+            ),
+
+
+            "samples":
+
+            len(memory)
+
+        }
